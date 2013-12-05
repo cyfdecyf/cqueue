@@ -1,4 +1,5 @@
-cqueue
-======
+# Concurrent Queue in C
 
-Concurrent queue in C.
+Currently provides:
+
+- `mpsc_q`: Multiple Producer, Single Consumer bounded size queue

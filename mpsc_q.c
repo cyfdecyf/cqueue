@@ -8,6 +8,9 @@
 #include <pthread.h>
 #include <sched.h>
 
+/* Avoid compiler reorder. */
+#define barrier() asm volatile ("" : : : "memory")
+
 /* Multi Producer Single Consumer bounded size queue. */
 struct mpsc_q {
     void **arr; /* circular array */
@@ -51,6 +54,7 @@ void mpsc_q_push(struct mpsc_q *q, void *e)
     /* First store element, then mark it as written.
      * x86 memory model ensures correctness. */
     q->arr[idx] = e;
+    barrier();
     assert(!q->w[idx]);
     q->w[idx] = true;
 }
@@ -71,6 +75,7 @@ void *mpsc_q_pop(struct mpsc_q *q)
     q->w[idx] = false;
     DPRINTLN("%x pop : head %lld tail %lld %ld|%ld", (int)pthread_self(),
         q->head, q->tail, (long)r >> 32, (long)r & 0xffffffff);
+    barrier();
     q->head++;
     assert(q->tail >= q->head);
     return r;
